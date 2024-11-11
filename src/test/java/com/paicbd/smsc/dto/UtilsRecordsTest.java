@@ -148,7 +148,7 @@ class UtilsRecordsTest {
                 "originatorSccpAddress",
                 "udhi",
                 "1",
-                "120",
+                120,
                 1,
                 2,
                 "message",

@@ -49,7 +49,7 @@ class MessageEventTest {
         messageEvent.setUdhi("{}");
         messageEvent.setEsmClass(null);
         messageEvent.setRegisteredDelivery(0);
-        messageEvent.setValidityPeriod("120");
+        messageEvent.setValidityPeriod(120);
         messageEvent.setDataCoding(0);
         assertDoesNotThrow(() -> messageEvent.toCdrDetail(UtilsEnum.Module.SMPP_CLIENT, UtilsEnum.MessageType.MESSAGE,
                 UtilsEnum.CdrStatus.RECEIVED, ""));

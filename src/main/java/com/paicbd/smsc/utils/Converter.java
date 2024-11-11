@@ -2,6 +2,7 @@ package com.paicbd.smsc.utils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.paicbd.smsc.dto.UtilsRecords;
 import com.paicbd.smsc.exception.RTException;
@@ -12,6 +13,8 @@ import redis.clients.jedis.Connection;
 import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.JedisCluster;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -22,7 +25,7 @@ import java.util.Set;
 
 @Slf4j
 public class Converter {
-    private static final ObjectMapper mapper = new ObjectMapper();
+    private static final ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     private static final String MESSAGE = "message";
 
     private Converter() {
@@ -226,7 +229,7 @@ public class Converter {
         System.arraycopy(messageBytes, 0, result, udh.length, messageBytes.length);
         return result;
     }
-    
+
     public static Map<String, Object> jsonToUdhMap(String udhJson) {
         try {
             return mapper.readValue(udhJson, new TypeReference<>() {
@@ -275,7 +278,7 @@ public class Converter {
     public static boolean hasValidValue(String value) {
         return value != null && !value.isEmpty();
     }
-    
+
     public static byte[] paramsToUdhBytes(Map<String, Object> udhMap, int encodingType, boolean includeMessage) {
         List<Byte> byteList = new ArrayList<>();
 
@@ -285,11 +288,11 @@ public class Converter {
                 List<Integer> values = (List<Integer>) (entry.getValue());
                 byte[] udhBytes = udhToBytes(key, values);
                 for (byte b : udhBytes) {
-                	byteList.add(b);
+                    byteList.add(b);
                 }
             }
         }
-        
+
         // count only udh headers
         int totalLength = byteList.size();
         byteList.addFirst((byte) totalLength);
@@ -299,7 +302,7 @@ public class Converter {
             String message = (String) udhMap.get(MESSAGE);
             byte[] messageBytes = SmppEncoding.encodeMessage(message, encodingType);
             for (byte b : messageBytes) {
-            	byteList.add(b);
+                byteList.add(b);
             }
         }
 
@@ -307,7 +310,7 @@ public class Converter {
         for (int i = 0; i < byteList.size(); i++) {
             udhArray[i] = byteList.get(i);
         }
-        
+
         return udhArray;
     }
 
@@ -322,5 +325,112 @@ public class Converter {
         }
 
         return byteArray;
+    }
+
+    public static String secondsToRelativeValidityPeriod(long totalSeconds) {
+        if (totalSeconds < 0) {
+            throw new IllegalArgumentException("Total seconds cannot be negative.");
+        }
+
+        long years = totalSeconds / (365L * 24 * 60 * 60);
+        totalSeconds %= 365L * 24 * 60 * 60;
+
+        long months = totalSeconds / (30L * 24 * 60 * 60);
+        totalSeconds %= 30L * 24 * 60 * 60;
+
+        long days = totalSeconds / (24 * 60 * 60);
+        totalSeconds %= 24 * 60 * 60;
+
+        long hours = totalSeconds / (60 * 60);
+        totalSeconds %= 60 * 60;
+
+        long minutes = totalSeconds / 60;
+        long seconds = totalSeconds % 60;
+
+        String formattedValues = String.format("%02d%02d%02d%02d%02d%02d000R",
+                years, months, days, hours, minutes, seconds);
+        log.debug("Formatted values: {}", formattedValues);
+        return formattedValues;
+    }
+
+    public static long smppValidityPeriodToSeconds(String smppTime) {
+        if (smppTime == null || smppTime.length() != 16) {
+            throw new IllegalArgumentException("Invalid SMPP time format.");
+        }
+
+        char lastChar = smppTime.charAt(15);
+
+        if (lastChar == 'R') {
+            return parseRelativeTimeToSeconds(smppTime);
+        }
+
+        if (lastChar == '+' || lastChar == '-') {
+            return parseAbsoluteTimeToSeconds(smppTime);
+        }
+
+        throw new IllegalArgumentException("Unsupported SMPP time format: " + smppTime);
+    }
+
+    private static long parseRelativeTimeToSeconds(String smppTime) {
+        DateTimeRecord dateTimeRecord = createDateTimeMap(smppTime, false);
+        long totalSeconds = (dateTimeRecord.year() * 365L * 24 * 60 * 60) +
+                            (dateTimeRecord.month() * 30L * 24 * 60 * 60) +
+                            (dateTimeRecord.day() * 24L * 60 * 60) +
+                            (dateTimeRecord.hour() * 60L * 60) +
+                            (dateTimeRecord.minute() * 60L) +
+                            dateTimeRecord.second();
+        log.debug("SMPP validity period: {} converted to seconds: {}", smppTime, totalSeconds);
+        return totalSeconds;
+    }
+
+    public static long parseAbsoluteTimeToSeconds(String absoluteTime) {
+        DateTimeRecord dateTimeRecord = createDateTimeMap(absoluteTime, true);
+        int quarterHourOffset = Integer.parseInt(absoluteTime.substring(13, 15));
+        char timezoneSign = absoluteTime.charAt(15);  // '+' o '-'
+        LocalDateTime parsedDateTime = getLocalDateTime(dateTimeRecord, quarterHourOffset, timezoneSign);
+
+        LocalDateTime currentTime = LocalDateTime.now();
+        Duration durationDifference = Duration.between(currentTime, parsedDateTime);
+        return durationDifference.getSeconds();
+    }
+
+    private static LocalDateTime getLocalDateTime(DateTimeRecord dateTimeRecord, int quarterHourOffset, char timezoneSign) {
+        LocalDateTime parsedDateTime = LocalDateTime.of(
+                dateTimeRecord.year(),
+                dateTimeRecord.month(),
+                dateTimeRecord.day(),
+                dateTimeRecord.hour(),
+                dateTimeRecord.minute(),
+                dateTimeRecord.second()
+        );
+
+        int offsetInMinutes = quarterHourOffset * 15;
+        if (timezoneSign == '+') {
+            parsedDateTime = parsedDateTime.plusMinutes(offsetInMinutes);
+        } else {
+            parsedDateTime = parsedDateTime.minusMinutes(offsetInMinutes);
+        }
+        return parsedDateTime;
+    }
+
+    public static DateTimeRecord createDateTimeMap(String dateTime, boolean addMile) {
+        int year = Integer.parseInt(dateTime.substring(0, 2));
+        year += addMile ? 2000 : 0;
+        int month = Integer.parseInt(dateTime.substring(2, 4));
+        int day = Integer.parseInt(dateTime.substring(4, 6));
+        int hour = Integer.parseInt(dateTime.substring(6, 8));
+        int minute = Integer.parseInt(dateTime.substring(8, 10));
+        int second = Integer.parseInt(dateTime.substring(10, 12));
+        return new DateTimeRecord(year, month, day, hour, minute, second);
+    }
+
+    public record DateTimeRecord(
+            int year,
+            int month,
+            int day,
+            int hour,
+            int minute,
+            int second
+    ) {
     }
 }

@@ -3,13 +3,19 @@ package com.paicbd.smsc.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.paicbd.smsc.utils.Converter;
 import com.paicbd.smsc.utils.UtilsEnum;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 @Getter
 @Setter
 @Slf4j
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class Ss7Settings {
     @JsonProperty("name")
     private String name;
