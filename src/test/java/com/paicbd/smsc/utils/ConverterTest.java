@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ConverterTest {
-    String MESSAGE = "message";
+    static final String MESSAGE = "message";
 
     @Test
     void testConstantsPrivateConstructor() throws NoSuchMethodException {
@@ -92,7 +93,7 @@ class ConverterTest {
                 null,
                 "{}",
                 "3",
-                "120",
+                120,
                 1,
                 3,
                     "TEST MESSAGE",
@@ -215,5 +216,46 @@ class ConverterTest {
         assertEquals(1, generalSetting.getId());
         assertEquals(60, generalSetting.getValidityPeriod());
         assertNull(Converter.stringToObject(generalSettingInRawWithError, GeneralSettings.class));
+    }
+
+    @Test
+    void testSecondsToRelativeValidityPeriod() {
+        assertEquals("000000000010000R", Converter.secondsToRelativeValidityPeriod(10)); // 10 seconds
+        assertEquals("000000020000000R", Converter.secondsToRelativeValidityPeriod(7200)); // 2 hours
+        assertEquals("000001000000000R", Converter.secondsToRelativeValidityPeriod(86400)); // 1 day
+
+        assertThrows(IllegalArgumentException.class, () -> Converter.secondsToRelativeValidityPeriod(-10));
+    }
+
+    @Test
+    void testSmppValidityPeriodToSeconds() {
+        // illegal values
+        assertThrows(IllegalArgumentException.class, () -> Converter.smppValidityPeriodToSeconds("000000000010000R8"));
+
+        assertEquals(10, Converter.smppValidityPeriodToSeconds("000000000010000R"));
+        assertEquals(7200, Converter.smppValidityPeriodToSeconds("000000020000000R"));
+        assertEquals(86400, Converter.smppValidityPeriodToSeconds("000001000000000R"));
+
+        LocalDateTime dt = LocalDateTime.now();
+        dt = dt.plusHours(2);
+        int currentYear = dt.getYear();
+        currentYear -= 2000;
+        int currentMonth = dt.getMonthValue();
+        int currentDay = dt.getDayOfMonth();
+        int currentHour = dt.getHour();
+        int currentMinute = dt.getMinute();
+        int currentSecond = dt.getSecond();
+
+        String absoluteTime = String.format("%02d%02d%02d%02d%02d%02d000+", currentYear, currentMonth, currentDay, currentHour, currentMinute, currentSecond);
+        assertTrue(Converter.smppValidityPeriodToSeconds(absoluteTime) > 0);
+
+        absoluteTime = String.format("%02d%02d%02d%02d%02d%02d000-", currentYear, currentMonth, currentDay, currentHour, currentMinute, currentSecond);
+        assertTrue(Converter.smppValidityPeriodToSeconds(absoluteTime) > 0);
+
+        // illegal last character
+        assertThrows(IllegalArgumentException.class, () -> Converter.smppValidityPeriodToSeconds("000000020000000X"));
+
+        // illegal because null
+        assertThrows(IllegalArgumentException.class, () -> Converter.smppValidityPeriodToSeconds(null));
     }
 }

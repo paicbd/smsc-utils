@@ -67,7 +67,7 @@ class CdrProcessorTest {
                 null,
                 "{}",
                 "3",
-                "120",
+                120,
                 1,
                 3,
                 "TEST MESSAGE",
