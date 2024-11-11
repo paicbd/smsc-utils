@@ -3,9 +3,11 @@ package com.paicbd.smsc.dto;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.paicbd.smsc.utils.Converter;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,7 +16,9 @@ import java.util.concurrent.atomic.AtomicLong;
 
 @Getter
 @Setter
-@Slf4j
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ServiceProvider {
     @JsonProperty("network_id")

@@ -103,7 +103,7 @@ public class UtilsRecords {
             @JsonProperty("originator_sccp_address") String originatorSccpAddress,
             @JsonProperty("udhi") String udhi,
             @JsonProperty("esm_class") String esmClass,
-            @JsonProperty("validity_period") String validityPeriod,
+            @JsonProperty("validity_period") long validityPeriod,
             @JsonProperty("registered_delivery") Integer registeredDelivery,
             @JsonProperty("data_coding") int dataCoding,
             @JsonProperty("message") String message,

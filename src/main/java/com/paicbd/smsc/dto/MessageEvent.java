@@ -4,9 +4,11 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.paicbd.smsc.utils.Converter;
 import com.paicbd.smsc.utils.UtilsEnum;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.Map;
@@ -14,7 +16,9 @@ import java.util.Objects;
 
 @Getter
 @Setter
-@Slf4j
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class MessageEvent {
     @JsonProperty("id")
     private String id;
@@ -63,7 +67,10 @@ public class MessageEvent {
     private Integer esmClass;
 
     @JsonProperty("validity_period")
-    private String validityPeriod;
+    private long validityPeriod;
+
+    @JsonProperty("string_validity_period")
+    private String stringValidityPeriod;
 
     @JsonProperty("registered_delivery")
     private Integer registeredDelivery;
@@ -276,6 +283,7 @@ public class MessageEvent {
         this.destinationAddr = event.destinationAddr;
         this.esmClass = event.esmClass;
         this.validityPeriod = event.validityPeriod;
+        this.stringValidityPeriod = event.stringValidityPeriod;
         this.registeredDelivery = event.registeredDelivery;
         this.dataCoding = event.dataCoding;
         this.smDefaultMsgId = event.smDefaultMsgId;
