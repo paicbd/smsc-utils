@@ -6,6 +6,8 @@ import com.paicbd.smsc.dto.UtilsRecords;
 import com.paicbd.smsc.exception.RTException;
 import org.jsmpp.bean.OptionalParameter;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -13,6 +15,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -31,14 +34,9 @@ class ConverterTest {
         testPrivateConstructor(Converter.class);
     }
 
-    @Test
-    void paramsToJedisCluster() {
-        UtilsRecords.JedisConfigParams jedisConfigParams = new UtilsRecords.JedisConfigParams(
-            List.of("localhost:7000", "localhost:7001", "localhost:7002", "localhost:7003", "localhost:7004", "localhost:7005", "localhost:7006", "localhost:7007", "localhost:7008", "localhost:7009"),
-            1000,
-            1000,
-            1000,
-            true);
+    @ParameterizedTest
+    @MethodSource("jedisConfigParamsStream")
+    void paramsToJedisCluster(UtilsRecords.JedisConfigParams jedisConfigParams) {
         assertNotNull(jedisConfigParams);
         assertDoesNotThrow(() -> Converter.paramsToJedisCluster(jedisConfigParams));
     }
@@ -96,7 +94,7 @@ class ConverterTest {
                 120,
                 1,
                 3,
-                    "TEST MESSAGE",
+                "TEST MESSAGE",
                 "1",
                 1,
                 2,
@@ -205,12 +203,13 @@ class ConverterTest {
 
         GeneralSettings generalSetting;
 
-        generalSetting = Converter.stringToObject(generalSettingInRaw, new TypeReference<GeneralSettings>() {
+        generalSetting = Converter.stringToObject(generalSettingInRaw, new TypeReference<>() {
         });
         assertNotNull(generalSetting);
         assertEquals(1, generalSetting.getId());
         assertEquals(60, generalSetting.getValidityPeriod());
-        assertThrows(Exception.class, () -> Converter.stringToObject(generalSettingInRawWithError, new TypeReference<GeneralSettings>() {}));
+        assertThrows(Exception.class, () -> Converter.stringToObject(generalSettingInRawWithError, new TypeReference<GeneralSettings>() {
+        }));
         generalSetting = Converter.stringToObject(generalSettingInRaw, GeneralSettings.class);
         assertNotNull(generalSetting);
         assertEquals(1, generalSetting.getId());
@@ -258,4 +257,40 @@ class ConverterTest {
         // illegal because null
         assertThrows(IllegalArgumentException.class, () -> Converter.smppValidityPeriodToSeconds(null));
     }
+
+    static Stream<UtilsRecords.JedisConfigParams> jedisConfigParamsStream() {
+        return Stream.of(
+                new UtilsRecords.JedisConfigParams(
+                        List.of("localhost:7000", "localhost:7001", "localhost:7002", "localhost:7003", "localhost:7004", "localhost:7005", "localhost:7006", "localhost:7007", "localhost:7008", "localhost:7009"),
+                        1000,
+                        1000,
+                        1000,
+                        true,
+                        0,
+                        0,
+                        0,
+                        "", ""),
+                new UtilsRecords.JedisConfigParams(
+                        List.of("localhost:7000", "localhost:7001", "localhost:7002", "localhost:7003", "localhost:7004", "localhost:7005", "localhost:7006", "localhost:7007", "localhost:7008", "localhost:7009"),
+                        1000,
+                        1000,
+                        1000,
+                        true,
+                        2000,
+                        2000,
+                        20,
+                        "", "pass"),
+                new UtilsRecords.JedisConfigParams(
+                        List.of("localhost:7000", "localhost:7001", "localhost:7002", "localhost:7003", "localhost:7004", "localhost:7005", "localhost:7006", "localhost:7007", "localhost:7008", "localhost:7009"),
+                        1000,
+                        1000,
+                        1000,
+                        true,
+                        2000,
+                        2000,
+                        20,
+                        "user", "pass")
+        );
+    }
+
 }

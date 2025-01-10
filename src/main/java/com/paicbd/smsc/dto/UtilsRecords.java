@@ -51,12 +51,17 @@ public class UtilsRecords {
         }
     }
 
-    public record JedisConfigParams(
+        public record JedisConfigParams(
             @Nonnull List<String> redisNodes,
             int maxTotal,
             int maxIdle,
             int minIdle,
-            boolean blockWhenExhausted
+            boolean blockWhenExhausted,
+            int connectionTimeout,
+            int soTimeout,
+            int maxAttempts,
+            String user,
+            String password
     ) {
         @Override
         public String toString() {
@@ -178,12 +183,12 @@ public class UtilsRecords {
     ) {
     }
 
-
     public record BroadcastStatistic(
             @JsonProperty("broadcast_id") Integer broadcastId,
             @JsonProperty("message_id") String messageId,
             @JsonProperty("status") Integer status,
-            @JsonProperty("date") String date
+            @JsonProperty("date") String date,
+            @JsonProperty("comment") String comment
     ) {
         @Override
         public String toString() {

@@ -3,11 +3,14 @@ package com.paicbd.smsc.dto;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.paicbd.smsc.utils.Converter;
+import com.paicbd.smsc.utils.InterpreterMapper;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.util.List;
 
 @Getter
 @Setter
@@ -71,7 +74,7 @@ public class Gateway {
     private int enquireLinkTimeout;
 
     @JsonProperty("request_dlr")
-    private boolean requestDLR;
+    private Integer requestDLR;
 
     @JsonProperty("no_retry_error_code")
     private String noRetryErrorCode;
@@ -126,6 +129,8 @@ public class Gateway {
 
     @JsonProperty("split_smpp_type")
     private String splitSmppType;
+
+    private List<InterpreterMapper> interpreter;
 
     @Override
     public String toString() {

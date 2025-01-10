@@ -32,8 +32,9 @@ public class Converter {
         throw new IllegalStateException("Utility class");
     }
 
-    public static JedisCluster paramsToJedisCluster(UtilsRecords.JedisConfigParams params) {
+        public static JedisCluster paramsToJedisCluster(UtilsRecords.JedisConfigParams params) {
         try {
+            JedisCluster jedisCluster;
             Set<HostAndPort> jedisClusterNodes = new HashSet<>();
             params.redisNodes().forEach(node -> {
                 String[] nodePart = node.split(":");
@@ -45,9 +46,23 @@ public class Converter {
             poolConfig.setMinIdle(params.minIdle());
             poolConfig.setMaxIdle(params.maxIdle());
             poolConfig.setBlockWhenExhausted(params.blockWhenExhausted());
-            var jc = new JedisCluster(jedisClusterNodes, 2000, 2000, 20, poolConfig);
+
+            boolean hasUserAndPassword = !params.user().isEmpty() && !params.password().isEmpty();
+            boolean hasOnlyPassword = params.user().isEmpty() && !params.password().isEmpty();
+            int connectionTimeout = params.connectionTimeout() > 0 ? params.connectionTimeout() : 2000;
+            int soTimeout = params.soTimeout() > 0 ? params.soTimeout() : 2000;
+            int maxAttempts = params.maxAttempts() > 0 ? params.maxAttempts() : 20;
+
+            if (hasUserAndPassword) {
+                jedisCluster = new JedisCluster(jedisClusterNodes, connectionTimeout, soTimeout, maxAttempts, params.user(), params.password(), null , poolConfig);
+            } else if (hasOnlyPassword) {
+                jedisCluster = new JedisCluster(jedisClusterNodes, connectionTimeout, soTimeout, maxAttempts, params.password(), poolConfig);
+            } else {
+                jedisCluster = new JedisCluster(jedisClusterNodes, connectionTimeout, soTimeout, maxAttempts, poolConfig);
+            }
+
             log.info("JedisCluster instance was created successfully with params: {}", params);
-            return jc;
+            return jedisCluster;
         } catch (Exception e) {
             log.error("An error occurred while creating JedisCluster instance: {}", e.getMessage());
             return null;
@@ -279,6 +294,7 @@ public class Converter {
         return value != null && !value.isEmpty();
     }
 
+    @SuppressWarnings("unchecked")
     public static byte[] paramsToUdhBytes(Map<String, Object> udhMap, int encodingType, boolean includeMessage) {
         List<Byte> byteList = new ArrayList<>();
 

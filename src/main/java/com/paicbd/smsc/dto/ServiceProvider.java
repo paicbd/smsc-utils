@@ -84,9 +84,6 @@ public class ServiceProvider {
     @JsonProperty("pdu_timeout")
     private int pduTimeout;
 
-    @JsonProperty("request_dlr")
-    private Boolean requestDlr;
-
     @JsonProperty("has_available_credit")
     private Boolean hasAvailableCredit;
 
@@ -125,6 +122,9 @@ public class ServiceProvider {
 
     @JsonProperty("callback_headers_http")
     private List<UtilsRecords.CallbackHeaderHttp> callbackHeadersHttp = new ArrayList<>();
+
+    @JsonProperty("smpp_server_id")
+    private int smppServerId;
 
     @Override
     public String toString() {
