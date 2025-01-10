@@ -65,7 +65,8 @@ public class CdrProcessor {
                     cdrDetail.messageId(),
                     UtilsEnum.CdrStatus.SENT.toString().equals(cdrDetail.cdrStatus()) ?
                             BroadcastMessageStatus.SENT.getValue() : BroadcastMessageStatus.FAILED.getValue(),
-                    localDateTime.toString()
+                    localDateTime.toString(),
+                    cdrDetail.comment()
             );
             jedisCluster.lpush(BROADCAST_STATISTICS_LIST, broadcastStatistic.toString());
         }

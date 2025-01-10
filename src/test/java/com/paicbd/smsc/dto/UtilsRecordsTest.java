@@ -29,17 +29,17 @@ class UtilsRecordsTest {
     @Test
     void testWebSocketConnectionParams() throws JsonProcessingException {
         UtilsRecords.WebSocketConnectionParams webSocketConnectionParams = new UtilsRecords.WebSocketConnectionParams(
-            true,
-            "localhost",
-            8080,
-            "/path",
-            List.of("topic1", "topic2"),
-            "key",
-            "value",
-            1000,
-            "module"
+                true,
+                "localhost",
+                8080,
+                "/path",
+                List.of("topic1", "topic2"),
+                "key",
+                "value",
+                1000,
+                "module"
         );
-        assertEquals(true, webSocketConnectionParams.isWsEnabled());
+        assertTrue(webSocketConnectionParams.isWsEnabled());
         assertEquals("localhost", webSocketConnectionParams.host());
         assertEquals(8080, webSocketConnectionParams.port());
         assertEquals("/path", webSocketConnectionParams.path());
@@ -54,8 +54,8 @@ class UtilsRecordsTest {
     @Test
     void testOptionalParameter() {
         UtilsRecords.OptionalParameter optionalParameter = new UtilsRecords.OptionalParameter(
-            (short) 1,
-            "value"
+                (short) 1,
+                "value"
         );
         assertEquals(1, optionalParameter.tag());
         assertEquals("value", optionalParameter.value());
@@ -64,17 +64,17 @@ class UtilsRecordsTest {
     @Test
     void testSubmitSmResponseEvent() throws JsonProcessingException {
         UtilsRecords.SubmitSmResponseEvent submitSmResponseEvent = new UtilsRecords.SubmitSmResponseEvent(
-            "hash-id",
-            "1234",
-            "systemId",
-            "submitSmId",
-            "submitSmServerId",
-            "SMPP",
-            1,
-            "originNetworkType",
-            "msgReferenceNumber",
-            1,
-            2, "1233456"
+                "hash-id",
+                "1234",
+                "systemId",
+                "submitSmId",
+                "submitSmServerId",
+                "SMPP",
+                1,
+                "originNetworkType",
+                "msgReferenceNumber",
+                1,
+                2, "1233456"
         );
         assertEquals("hash-id", submitSmResponseEvent.hashId());
         assertEquals("1234", submitSmResponseEvent.id());
@@ -93,11 +93,16 @@ class UtilsRecordsTest {
     @Test
     void testJedisConfigParams() throws JsonProcessingException {
         UtilsRecords.JedisConfigParams jedisConfigParams = new UtilsRecords.JedisConfigParams(
-            List.of("redisNode1", "redisNode2"),
-            10,
-            5,
-            1,
-            true
+                List.of("redisNode1", "redisNode2"),
+                10,
+                5,
+                1,
+                true,
+                2000,
+                2000,
+                20,
+                null,
+                null
         );
         assertEquals(List.of("redisNode1", "redisNode2"), jedisConfigParams.redisNodes());
         assertEquals(10, jedisConfigParams.maxTotal());
@@ -164,60 +169,60 @@ class UtilsRecordsTest {
     @Test
     void testCdr() {
         assertDoesNotThrow(() -> new UtilsRecords.Cdr(
-            "recordDate",
-            "submitDate",
-            "deliveryDate",
-            "messageType",
-            "messageId",
-            "originationProtocol",
-            "originationNetworkId",
-            "originationType",
-            "destinationProtocol",
-            "destinationNetworkId",
-            "destinationType",
-            "routingId",
-            "status",
-            "statusCode",
-            "comment",
-            "dialogDuration",
-            "processingTime",
-            "dataCoding",
-            "validityPeriod",
-            "addrSrcDigits",
-            "addrSrcTon",
-            "addrSrcNpi",
-            "addrDstDigits",
-            "addrDstTon",
-            "addrDstNpi",
-            "remoteDialogId",
-            "localDialogId",
-            "localSpc",
-            "localSsn",
-            "localGlobalTitleDigits",
-            "remoteSpc",
-            "remoteSsn",
-            "remoteGlobalTitleDigits",
-            "imsi",
-            "nnnDigits",
-            "originatorSccpAddress",
-            "mtServiceCenterAddress",
-            "first20CharacterOfSms",
-            "esmClass",
-            "udhi",
-            "registeredDelivery",
-            "msgReferenceNumber",
-            "totalSegment",
-            "segmentSequence",
-            "retryNumber",
-            "parentId"
+                "recordDate",
+                "submitDate",
+                "deliveryDate",
+                "messageType",
+                "messageId",
+                "originationProtocol",
+                "originationNetworkId",
+                "originationType",
+                "destinationProtocol",
+                "destinationNetworkId",
+                "destinationType",
+                "routingId",
+                "status",
+                "statusCode",
+                "comment",
+                "dialogDuration",
+                "processingTime",
+                "dataCoding",
+                "validityPeriod",
+                "addrSrcDigits",
+                "addrSrcTon",
+                "addrSrcNpi",
+                "addrDstDigits",
+                "addrDstTon",
+                "addrDstNpi",
+                "remoteDialogId",
+                "localDialogId",
+                "localSpc",
+                "localSsn",
+                "localGlobalTitleDigits",
+                "remoteSpc",
+                "remoteSsn",
+                "remoteGlobalTitleDigits",
+                "imsi",
+                "nnnDigits",
+                "originatorSccpAddress",
+                "mtServiceCenterAddress",
+                "first20CharacterOfSms",
+                "esmClass",
+                "udhi",
+                "registeredDelivery",
+                "msgReferenceNumber",
+                "totalSegment",
+                "segmentSequence",
+                "retryNumber",
+                "parentId"
         ));
     }
 
     @Test
     void testCallbackHeaderHttp() {
         assertDoesNotThrow(() -> new UtilsRecords.CallbackHeaderHttp(
-            "headerName",
-            "headerValue"
+                "headerName",
+                "headerValue"
         ));
     }
 
@@ -232,13 +237,15 @@ class UtilsRecordsTest {
                 1,
                 messageId,
                 1,
-                dateTime
+                dateTime,
+                "comment"
         );
 
         assertEquals(1, broadcastStatistic.broadcastId());
         assertEquals(messageId, broadcastStatistic.messageId());
         assertEquals(1, broadcastStatistic.status());
         assertEquals(dateTime, broadcastStatistic.date());
+        assertEquals("comment", broadcastStatistic.comment());
         String jsonResult = broadcastStatistic.toString();
         assertEquals(objectMapper.writeValueAsString(broadcastStatistic), jsonResult);
     }
