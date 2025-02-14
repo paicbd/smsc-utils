@@ -1,7 +1,7 @@
 package com.paicbd.smsc.utils;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.paicbd.smsc.dto.FieldMapping;
+import com.paicbd.smsc.interpreter.FieldMapping;
 import lombok.Getter;
 import lombok.Setter;
 

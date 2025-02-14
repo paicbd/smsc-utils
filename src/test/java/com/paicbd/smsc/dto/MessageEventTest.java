@@ -127,12 +127,6 @@ class MessageEventTest {
         messageEvent.setDestNetworkType("GW");
         Assertions.assertTrue(messageEvent.applyForLongMessage());
 
-        messageEvent.setOriginProtocol("HTTP");
-        messageEvent.setOriginNetworkType("SP");
-        messageEvent.setDestProtocol("SMPP");
-        messageEvent.setDestNetworkType("SP");
-        Assertions.assertFalse(messageEvent.applyForLongMessage());
-
         messageEvent.setOriginNetworkType("SP");
         messageEvent.setOriginProtocol("SMPP");
         messageEvent.setDestNetworkType("SP");

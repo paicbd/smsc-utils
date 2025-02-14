@@ -1,12 +1,14 @@
-package com.paicbd.smsc.utils;
+package com.paicbd.smsc.interpreter;
 
 public enum DataType {
     STRING,
-    INTEGER,
+    INT,
     LONG,
     DOUBLE,
     BYTE,
+    HEX,
     BOOLEAN,
-    LIST
+    LIST,
+    MAP
 }
 

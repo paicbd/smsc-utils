@@ -42,15 +42,15 @@ public class DataFetcher {
                 }).subscribeOn(Schedulers.boundedElastic());
     }
 
-    private static Map.Entry<Integer, Integer> calculateWorkersAndBatchSize(
-            JedisCluster jedisCluster, int tpsPerGateway, int executionEveryInMs, int workersPerGateway, String redisListName) {
-        int recordsToTake = tpsPerGateway * (executionEveryInMs / 1000);
+    public static Map.Entry<Integer, Integer> calculateWorkersAndBatchSize(
+            JedisCluster jedisCluster, int tps, int executionEveryInMs, int workers, String redisListName) {
+        int recordsToTake = tps * (executionEveryInMs / 1000);
         int listSize = (int) jedisCluster.llen(redisListName);
         if (listSize == 0) {
             return Map.entry(0, 0);
         }
         int min = Math.min(recordsToTake, listSize);
-        var bpw = min / workersPerGateway;
-        return bpw > 0 ? Map.entry(workersPerGateway, bpw) : Map.entry(1, min);
+        var bpw = min / workers;
+        return bpw > 0 ? Map.entry(workers, bpw) : Map.entry(1, min);
     }
 }

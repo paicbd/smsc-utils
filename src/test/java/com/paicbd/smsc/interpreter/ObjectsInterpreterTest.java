@@ -1,13 +1,13 @@
-package com.paicbd.smsc.utils;
+package com.paicbd.smsc.interpreter;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.paicbd.smsc.dto.FieldMapping;
 import com.paicbd.smsc.dto.MessageEvent;
 import com.paicbd.smsc.dto.UtilsRecords;
 import com.paicbd.smsc.exception.SerializationException;
+import com.paicbd.smsc.utils.Converter;
 import jakarta.annotation.Nonnull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -47,15 +47,15 @@ class ObjectsInterpreterTest {
 
         Stream<FieldMapping> fieldMappings = Stream.of(
                 new FieldMapping("aboutSms.uniqueId", "messageId", DataType.STRING),
-                new FieldMapping("aboutSms.sourceAddrTypeOfNumber", "sourceAddrTon", DataType.INTEGER),
-                new FieldMapping("aboutSms.sourceAddrNumberingPlanIndicator", "sourceAddrNpi", DataType.INTEGER),
+                new FieldMapping("aboutSms.sourceAddrTypeOfNumber", "sourceAddrTon", DataType.INT),
+                new FieldMapping("aboutSms.sourceAddrNumberingPlanIndicator", "sourceAddrNpi", DataType.INT),
                 new FieldMapping("sourceAddr", "sourceAddr", DataType.STRING),
                 new FieldMapping("destAddr", "destinationAddr", DataType.STRING)
         );
 
         JsonNode jsonNode = ObjectsInterpreter.xmlStringToJsonNode(xml);
         String stringJsonMessageEvent = ObjectsInterpreter
-                .jsonNodeToSerializedString(jsonNode, fieldMappings, MessageEvent.class, ResponseFormat.JSON, null);
+                .jsonNodeToSerializedString(jsonNode, fieldMappings, MessageEvent.class, PayloadFormat.JSON, null);
         MessageEvent event = Converter.stringToObject(stringJsonMessageEvent, MessageEvent.class);
         assertNotNull(event);
 
@@ -87,7 +87,7 @@ class ObjectsInterpreterTest {
         assertNotNull(stringMessageEvent);
 
         Stream<FieldMapping> fieldMappings = Stream.of(
-                new FieldMapping("commandId", "commandId", DataType.INTEGER),
+                new FieldMapping("commandId", "commandId", DataType.INT),
                 new FieldMapping("sourceAddrTon", "source.sourceAddrTon", DataType.BYTE),
                 new FieldMapping("sourceAddrNpi", "source.sourceAddrNpi", DataType.BYTE),
                 new FieldMapping("sourceAddr", "source.sourceAddr", DataType.STRING),
@@ -102,7 +102,7 @@ class ObjectsInterpreterTest {
         );
 
         String stringJsonMessageEvent = ObjectsInterpreter.jsonNodeToSerializedString(
-                stringMessageEvent, fieldMappings, JsonNode.class, ResponseFormat.JSON, null);
+                stringMessageEvent, fieldMappings, JsonNode.class, PayloadFormat.JSON, null);
         assertNotNull(stringJsonMessageEvent);
 
         JsonNode resultJsonNode = OBJECT_MAPPER.readTree(stringJsonMessageEvent);
@@ -155,9 +155,9 @@ class ObjectsInterpreterTest {
                 """;
 
         Stream<FieldMapping> fieldMappings = Stream.of(
-                new FieldMapping("commandId", "commandId", DataType.INTEGER),
-                new FieldMapping("commandLength", "commandLength", DataType.INTEGER),
-                new FieldMapping("sequenceNumber", "sequenceNumber", DataType.INTEGER),
+                new FieldMapping("commandId", "commandId", DataType.INT),
+                new FieldMapping("commandLength", "commandLength", DataType.INT),
+                new FieldMapping("sequenceNumber", "sequenceNumber", DataType.INT),
                 new FieldMapping("serviceType", "serviceType", DataType.STRING),
                 new FieldMapping("sourceAddress.address", "sourceAddr", DataType.STRING),
                 new FieldMapping("sourceAddress.ton", "sourceAddrTon", DataType.BYTE),
@@ -172,7 +172,7 @@ class ObjectsInterpreterTest {
                 new FieldMapping("priority", "priority", DataType.STRING),
                 new FieldMapping("registerDelivery", "registeredDelivery", DataType.BYTE),
                 new FieldMapping("replaceIfPresent", "replaceIfPresent", DataType.STRING),
-                new FieldMapping("messageLength", "messageLength", DataType.INTEGER),
+                new FieldMapping("messageLength", "messageLength", DataType.INT),
                 new FieldMapping("message", "shortMessage", DataType.STRING),
                 new FieldMapping("clientId", "systemId", DataType.STRING),
                 new FieldMapping("esmClass", "esmClass", DataType.BYTE)
@@ -181,7 +181,7 @@ class ObjectsInterpreterTest {
         JsonNode jsonNode = ObjectsInterpreter.xmlStringToJsonNode(xmlString);
 
         String stringJsonMessage = ObjectsInterpreter
-                .jsonNodeToSerializedString(jsonNode, fieldMappings, MessageEvent.class, ResponseFormat.JSON, null);
+                .jsonNodeToSerializedString(jsonNode, fieldMappings, MessageEvent.class, PayloadFormat.JSON, null);
 
         assertNotNull(stringJsonMessage);
         MessageEvent event = Converter.stringToObject(stringJsonMessage, MessageEvent.class);
@@ -200,6 +200,21 @@ class ObjectsInterpreterTest {
         assertEquals("48656C6C6F21", event.getShortMessage());
         assertEquals("server1-test1", event.getSystemId());
         assertEquals(64, event.getEsmClass());
+    }
+
+    @Test
+    void complexXmlStringToJsonNode() {
+        String xml = """
+                <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+                <dialog mapMessagesSize="1" userObject="{{randomString}}">
+                  <unstructuredSSRequest_Request dataCodingScheme="15" string="Paquete Sin Limite Activo&#xA;Saldo: $1 al 01/03/24&#xA;&#xA;1. Recargas&#xA;2. Paquetes&#xA;3. Adelantos&#xA;4. Servicios sin saldo&#xA;5. Detalle de saldo">
+                    <msisdn nai="international_number" npi="ISDN" number="525532368999"/>
+                    <ussdString>1</ussdString>
+                  </unstructuredSSRequest_Request>
+                </dialog>
+                """;
+        JsonNode jsonNode = ObjectsInterpreter.xmlStringToJsonNode(xml);
+        assertNotNull(jsonNode);
     }
 
     @Test
@@ -225,12 +240,12 @@ class ObjectsInterpreterTest {
 
         Stream<FieldMapping> fieldMappings = Stream.of(
                 new FieldMapping("messageId", "messageId", DataType.STRING),
-                new FieldMapping("commandId", "commandId", DataType.INTEGER),
+                new FieldMapping("commandId", "commandId", DataType.INT),
                 new FieldMapping("sourceAddrTon", "source.sourceAddrTon", DataType.BYTE),
                 new FieldMapping("sourceAddrNpi", "source.sourceAddrNpi", DataType.BYTE),
                 new FieldMapping("sourceAddr", "source.sourceAddr", DataType.STRING),
-                new FieldMapping("destAddrTon", "dest.destAddrTon", DataType.INTEGER),
-                new FieldMapping("destAddrNpi", "dest.destAddrNpi", DataType.INTEGER),
+                new FieldMapping("destAddrTon", "dest.destAddrTon", DataType.INT),
+                new FieldMapping("destAddrNpi", "dest.destAddrNpi", DataType.INT),
                 new FieldMapping("destinationAddr", "dest.destinationAddr", DataType.STRING),
                 new FieldMapping("dataCoding", "dataCoding", DataType.STRING),
                 new FieldMapping("shortMessage", "text", DataType.STRING),
@@ -238,7 +253,7 @@ class ObjectsInterpreterTest {
         );
 
         String xmlStringEvent = ObjectsInterpreter.jsonNodeToSerializedString(
-                stringMessageEvent, fieldMappings, JsonNode.class, ResponseFormat.XML, "sms");
+                stringMessageEvent, fieldMappings, JsonNode.class, PayloadFormat.XML, "sms");
         assertNotNull(xmlStringEvent);
 
         JsonNode resultJsonNode = ObjectsInterpreter.xmlStringToJsonNode(xmlStringEvent);
@@ -278,20 +293,20 @@ class ObjectsInterpreterTest {
 
         Stream<FieldMapping> fieldMappingsForCastRecordToJsonNode = Stream.of(
                 new FieldMapping("messageId", "mid", DataType.STRING),
-                new FieldMapping("sourceAddrTon", "saTON", DataType.INTEGER),
-                new FieldMapping("sourceAddrNpi", "saNPI", DataType.INTEGER),
+                new FieldMapping("sourceAddrTon", "saTON", DataType.INT),
+                new FieldMapping("sourceAddrNpi", "saNPI", DataType.INT),
                 new FieldMapping("sourceAddr", "sa", DataType.STRING),
-                new FieldMapping("destAddrTon", "daTON", DataType.INTEGER),
-                new FieldMapping("destAddrNpi", "daNPI", DataType.INTEGER),
+                new FieldMapping("destAddrTon", "daTON", DataType.INT),
+                new FieldMapping("destAddrNpi", "daNPI", DataType.INT),
                 new FieldMapping("destinationAddr", "da", DataType.STRING),
-                new FieldMapping("dataCoding", "dc", DataType.INTEGER),
+                new FieldMapping("dataCoding", "dc", DataType.INT),
                 new FieldMapping("status", "stat", DataType.STRING),
                 new FieldMapping("errorCode", "ec", DataType.STRING),
                 new FieldMapping("optionalParameters", "op", DataType.LIST)
         );
 
         String stringJsonMessage = ObjectsInterpreter.jsonNodeToSerializedString(
-                jsonNode, fieldMappingsForCastRecordToJsonNode, JsonNode.class, ResponseFormat.JSON, null);
+                jsonNode, fieldMappingsForCastRecordToJsonNode, JsonNode.class, PayloadFormat.JSON, null);
 
         assertNotNull(stringJsonMessage);
 
@@ -301,20 +316,20 @@ class ObjectsInterpreterTest {
 
         Stream<FieldMapping> fieldMappingsForCastJsonNodeToRecord = Stream.of(
                 new FieldMapping("mid", "messageId", DataType.STRING),
-                new FieldMapping("saTON", "sourceAddrTon", DataType.INTEGER),
-                new FieldMapping("saNPI", "sourceAddrNpi", DataType.INTEGER),
+                new FieldMapping("saTON", "sourceAddrTon", DataType.INT),
+                new FieldMapping("saNPI", "sourceAddrNpi", DataType.INT),
                 new FieldMapping("sa", "sourceAddr", DataType.STRING),
                 new FieldMapping("daTON", "destAddrTon", DataType.LONG),
                 new FieldMapping("daNPI", "destAddrNpi", DataType.DOUBLE),
                 new FieldMapping("da", "destinationAddr", DataType.STRING),
-                new FieldMapping("dc", "dataCoding", DataType.INTEGER),
+                new FieldMapping("dc", "dataCoding", DataType.INT),
                 new FieldMapping("stat", "status", DataType.STRING),
                 new FieldMapping("ec", "errorCode", DataType.STRING),
                 new FieldMapping("op", "optionalParameters", DataType.LIST)
         );
 
         String resultedStringDlrRequest = ObjectsInterpreter.jsonNodeToSerializedString(
-                resultJsonNode, fieldMappingsForCastJsonNodeToRecord, DlrRequest.class, ResponseFormat.JSON, null);
+                resultJsonNode, fieldMappingsForCastJsonNodeToRecord, DlrRequest.class, PayloadFormat.JSON, null);
         assertNotNull(resultedStringDlrRequest);
         DlrRequest newDlrRequest = OBJECT_MAPPER.readValue(resultedStringDlrRequest, DlrRequest.class);
         assertNotNull(newDlrRequest);
@@ -340,17 +355,17 @@ class ObjectsInterpreterTest {
         assertNotNull(jsonNode);
 
         Stream<FieldMapping> fieldMappings = Stream.of(
-                new FieldMapping("value", "value", DataType.INTEGER),
+                new FieldMapping("value", "value", DataType.INT),
                 new FieldMapping("name", "name", DataType.STRING),
                 new FieldMapping("age", "age", DataType.DOUBLE),
-                new FieldMapping("id", "id", DataType.INTEGER),
+                new FieldMapping("id", "id", DataType.INT),
                 new FieldMapping("isTrue", "isTrue", DataType.BOOLEAN),
                 new FieldMapping("", "ls", DataType.STRING),
                 new FieldMapping(null, "null", DataType.STRING)
         );
 
         String stringJson = ObjectsInterpreter.jsonNodeToSerializedString(
-                jsonNode, fieldMappings, TestClazz.class, ResponseFormat.JSON, null);
+                jsonNode, fieldMappings, TestClazz.class, PayloadFormat.JSON, null);
         assertNotNull(stringJson);
 
         JsonNode resultJsonNode = OBJECT_MAPPER.readTree(stringJson);
@@ -389,7 +404,7 @@ class ObjectsInterpreterTest {
         );
 
         String stringJsonMessageEvent = ObjectsInterpreter.jsonNodeToSerializedString(
-                stringMessageEvent, stream, JsonNode.class, ResponseFormat.JSON, null);
+                stringMessageEvent, stream, JsonNode.class, PayloadFormat.JSON, null);
 
         assertNotNull(stringJsonMessageEvent);
 
@@ -429,12 +444,12 @@ class ObjectsInterpreterTest {
                 new FieldMapping("value", "value", DataType.LONG),
                 new FieldMapping("name", "name", DataType.STRING),
                 new FieldMapping("age", "age", DataType.DOUBLE),
-                new FieldMapping("id", "id", DataType.INTEGER),
+                new FieldMapping("id", "id", DataType.INT),
                 new FieldMapping("forVerification", "isTrue", DataType.BOOLEAN)
         );
 
         String stringJson = ObjectsInterpreter.jsonNodeToSerializedString(
-                jsonNode, fieldMappings, JsonNode.class, ResponseFormat.JSON, null);
+                jsonNode, fieldMappings, JsonNode.class, PayloadFormat.JSON, null);
         assertNotNull(stringJson);
 
         JsonNode resultJsonNode = OBJECT_MAPPER.readTree(stringJson);
@@ -461,14 +476,14 @@ class ObjectsInterpreterTest {
                 new FieldMapping("value", "value", DataType.LONG),
                 new FieldMapping("name", "name", DataType.STRING),
                 new FieldMapping("age", "age", DataType.DOUBLE),
-                new FieldMapping("id", "id", DataType.INTEGER),
+                new FieldMapping("id", "id", DataType.INT),
                 new FieldMapping("forVerification", "isTrue", DataType.BOOLEAN)
         );
 
         JsonNode jsonNode = OBJECT_MAPPER.readTree(json);
 
         String stringJson = ObjectsInterpreter.jsonNodeToSerializedString(
-                jsonNode, fieldMappings, JsonNode.class, ResponseFormat.JSON, null);
+                jsonNode, fieldMappings, JsonNode.class, PayloadFormat.JSON, null);
         assertNotNull(stringJson);
     }
 
@@ -501,11 +516,11 @@ class ObjectsInterpreterTest {
         Stream<FieldMapping> fieldMappings = Stream.of(
                 new FieldMapping("value", "value", DataType.LIST),
                 new FieldMapping("name", "name", DataType.STRING),
-                new FieldMapping("age", "age", DataType.INTEGER)
+                new FieldMapping("age", "age", DataType.INT)
         );
 
         String stringJson = ObjectsInterpreter.jsonNodeToSerializedString(
-                jsonNode, fieldMappings, ArrayRecord.class, ResponseFormat.JSON, null);
+                jsonNode, fieldMappings, ArrayRecord.class, PayloadFormat.JSON, null);
         assertNotNull(stringJson);
 
         JsonNode resultJsonNode = OBJECT_MAPPER.readTree(stringJson);
@@ -531,11 +546,11 @@ class ObjectsInterpreterTest {
         Stream<FieldMapping> fieldMappings = Stream.of(
                 new FieldMapping("value", "value", DataType.LIST),
                 new FieldMapping("name", "name", DataType.STRING),
-                new FieldMapping("age", "age", DataType.INTEGER)
+                new FieldMapping("age", "age", DataType.INT)
         );
 
         String stringJson = ObjectsInterpreter.jsonNodeToSerializedString(
-                jsonNode, fieldMappings, ArrayRecord.class, ResponseFormat.JSON, null);
+                jsonNode, fieldMappings, ArrayRecord.class, PayloadFormat.JSON, null);
         assertNotNull(stringJson);
 
         JsonNode resultJsonNode = OBJECT_MAPPER.readTree(stringJson);
