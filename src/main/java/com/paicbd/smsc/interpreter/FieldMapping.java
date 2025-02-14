@@ -1,6 +1,4 @@
-package com.paicbd.smsc.dto;
-
-import com.paicbd.smsc.utils.DataType;
+package com.paicbd.smsc.interpreter;
 
 public record FieldMapping(
         String sourceProperty,

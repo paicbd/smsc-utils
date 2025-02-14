@@ -6,6 +6,7 @@ import jakarta.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 public class UtilsRecords {
@@ -29,6 +30,21 @@ public class UtilsRecords {
     public record OptionalParameter(
             short tag, String value
     ) {
+        public OptionalParameter(String tag, String value) {
+            this(convertToShort(tag), value);
+        }
+
+        public OptionalParameter(Map<String, String> map) {
+            this(convertToShort(map.get("tag")), map.get("value"));
+        }
+
+        private static short convertToShort(String tag) {
+            if (tag.startsWith("0x")) {
+                return (short) Integer.parseInt(tag.replace("0x", ""), 16);
+            } else {
+                return Short.parseShort(tag);
+            }
+        }
     }
 
     public record SubmitSmResponseEvent(

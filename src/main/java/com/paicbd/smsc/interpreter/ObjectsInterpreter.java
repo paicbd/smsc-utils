@@ -1,4 +1,4 @@
-package com.paicbd.smsc.utils;
+package com.paicbd.smsc.interpreter;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -10,8 +10,8 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import com.paicbd.smsc.dto.FieldMapping;
 import com.paicbd.smsc.exception.SerializationException;
+import com.paicbd.smsc.utils.Generated;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.Assert;
 
@@ -53,7 +53,7 @@ public class ObjectsInterpreter {
             JsonNode inputJson,
             Stream<FieldMapping> fieldMappings,
             Class<?> targetClass,
-            ResponseFormat responseType,
+            PayloadFormat responseType,
             String xmlRootName) {
         Assert.notNull(inputJson, "Input JSON must not be null");
         Assert.notNull(fieldMappings, "Field mappings must not be null");
@@ -64,7 +64,7 @@ public class ObjectsInterpreter {
                 processJavaRecord(inputJson, fieldMappings, targetClass) :
                 processJavaObject(inputJson, fieldMappings, targetClass);
 
-        return Objects.equals(ResponseFormat.JSON, responseType) ?
+        return Objects.equals(PayloadFormat.JSON, responseType) ?
                 jsonResult :
                 convertJsonToXml(jsonResult, xmlRootName);
     }
@@ -258,12 +258,13 @@ public class ObjectsInterpreter {
 
         return switch (dataType) {
             case BYTE -> transformToByte(valueNode);
-            case INTEGER -> valueNode.asInt();
+            case INT -> valueNode.asInt();
             case STRING -> valueNode.asText();
             case BOOLEAN -> valueNode.asBoolean();
             case LONG -> valueNode.asLong();
             case DOUBLE -> valueNode.asDouble();
             case LIST -> valueNode;
+            default -> throw new IllegalArgumentException("Unsupported type: " + dataType);
         };
     }
 
