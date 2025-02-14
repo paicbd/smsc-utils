@@ -167,7 +167,7 @@ public class Converter {
         return value == null ? "" : value.toString();
     }
 
-    public static Map<String, Object> bytesToUdhMap(byte[] message) {
+    public static Map<String, Object> bytesToUdhMap(byte[] message, int encodingType) {
         Map<String, Object> udhMap = new HashMap<>();
         int index = 0;
         int udhLength = Byte.toUnsignedInt(message[index]);
@@ -189,9 +189,8 @@ public class Converter {
         }
 
         byte[] currentMessageBytes = Arrays.copyOfRange(message, udhIndex, message.length);
-        String currentMessage = new String(currentMessageBytes);
-
-        udhMap.put(MESSAGE, currentMessage);
+        String currentDecodedMessage = SmppEncoding.decodeMessage(currentMessageBytes, encodingType);
+        udhMap.put(MESSAGE, currentDecodedMessage);
         return udhMap;
     }
 
@@ -230,8 +229,8 @@ public class Converter {
         return byteArray;
     }
 
-    public static byte[] paramsToUdhBytes(String message, int identifier, int parts, int partNumber) {
-        byte[] messageBytes = message.getBytes();
+    public static byte[] paramsToUdhBytes(String message, int encodingType, int identifier, int parts, int partNumber) {
+        byte[] messageBytes = SmppEncoding.encodeMessage(message, encodingType);
         byte[] udh = new byte[6];
         udh[0] = 5;
         udh[1] = 0;

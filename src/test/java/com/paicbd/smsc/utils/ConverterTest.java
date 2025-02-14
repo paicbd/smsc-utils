@@ -114,16 +114,37 @@ class ConverterTest {
 
     @Test
     void testBytesToUdhMap() {
-        byte[] udh = new byte[]{0x05, 0x00, 0x03, 0x0A, 0x01, 0x02};
-        assertDoesNotThrow(() -> Converter.bytesToUdhMap(udh));
-
         byte[] invalidUdh = new byte[]{0x05, 0x00, 0x03, 0x01, 0x02};
-        assertThrows(ArrayIndexOutOfBoundsException.class, () -> Converter.bytesToUdhMap(invalidUdh));
+        assertThrows(ArrayIndexOutOfBoundsException.class, () -> Converter.bytesToUdhMap(invalidUdh, 1));
 
-        // return valid Map
-        byte[] udh2 = new byte[]{0x05, 0x00, 0x03, 0x0A, 0x01, 0x02, 0x05, 0x00, 0x03, 0x0A, 0x01, 0x02};
-        var map = Converter.bytesToUdhMap(udh2);
-        assertEquals(2, map.size());
+        // UCS2 Encode Message
+        String messageExpectedDecoded = "Java: versatile, powerful, and";
+        byte[] byteUdhMessageEncodeInUcs2 = new byte[]{
+                0x05, 0x00, 0x03, 0x04, 0x02, 0x01, 0x00, 0x4A, 0x00, 0x61, 0x00, 0x76, 0x00, 0x61, 0x00, 0x3A,
+                0x00, 0x20, 0x00, 0x76, 0x00, 0x65, 0x00, 0x72, 0x00, 0x73, 0x00, 0x61, 0x00, 0x74, 0x00, 0x69,
+                0x00, 0x6C, 0x00, 0x65, 0x00, 0x2C, 0x00, 0x20, 0x00, 0x70, 0x00, 0x6F, 0x00, 0x77, 0x00, 0x65,
+                0x00, 0x72, 0x00, 0x66, 0x00, 0x75, 0x00, 0x6C, 0x00, 0x2C, 0x00, 0x20, 0x00, 0x61, 0x00, 0x6E,
+                0x00, 0x64
+        };
+        var mapResultForMessageEncodeInUcs2 = Converter.bytesToUdhMap(byteUdhMessageEncodeInUcs2, 2);
+        checkMapResultFromUdhBytes(mapResultForMessageEncodeInUcs2, messageExpectedDecoded);
+
+        // GSM7 Encode Message
+        byte[] byteUdhMessageEncodeInGsm7 = new byte[]{
+                0x05, 0x00, 0x03, 0x05, 0x02, 0x01, 0x4A, 0x61, 0x76, 0x61, 0x3A, 0x20, 0x76, 0x65, 0x72, 0x73,
+                0x61, 0x74, 0x69, 0x6C, 0x65, 0x2C, 0x20, 0x70, 0x6F, 0x77, 0x65, 0x72, 0x66, 0x75, 0x6C, 0x2C,
+                0x20, 0x61, 0x6E, 0x64
+        };
+
+        var mapResultForMessageEncodeInGsm7 = Converter.bytesToUdhMap(byteUdhMessageEncodeInGsm7, 0);
+        checkMapResultFromUdhBytes(mapResultForMessageEncodeInGsm7, messageExpectedDecoded);
+
+    }
+
+    private void checkMapResultFromUdhBytes(Map<String, Object> mapResult, String message) {
+        assertEquals(2, mapResult.size());
+        assertTrue(mapResult. containsKey("message"));
+        assertEquals(message, mapResult. get("message"));
     }
 
     @Test
@@ -145,8 +166,8 @@ class ConverterTest {
         int identifier = 10;
         int parts = 4;
         int partNumber = 2;
-        assertDoesNotThrow(() -> Converter.paramsToUdhBytes(message, identifier, parts, partNumber));
-        assertInstanceOf(byte[].class, Converter.paramsToUdhBytes(message, identifier, parts, partNumber));
+        assertDoesNotThrow(() -> Converter.paramsToUdhBytes(message, 0, identifier, parts, partNumber));
+        assertInstanceOf(byte[].class, Converter.paramsToUdhBytes(message, 0, identifier, parts, partNumber));
     }
 
     @Test

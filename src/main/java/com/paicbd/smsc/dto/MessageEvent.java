@@ -63,6 +63,27 @@ public class MessageEvent {
     @JsonProperty("destination_addr")
     private String destinationAddr;
 
+    @JsonProperty("command_id")
+    private int commandId;
+
+    @JsonProperty("command_length")
+    private int commandLength;
+
+    @JsonProperty("service_type")
+    private String serviceType;
+
+    @JsonProperty("schedule_delivery_time")
+    private String scheduleDeliveryTime;
+
+    @JsonProperty("protocol_id")
+    private byte protocolId;
+
+    @JsonProperty("priority_flag")
+    private byte priorityFlag;
+
+    @JsonProperty("replace_if_present")
+    private byte replaceIfPresent;
+
     @JsonProperty("esm_class")
     private Integer esmClass;
 
@@ -265,7 +286,7 @@ public class MessageEvent {
     private Integer broadcastId;
 
     @JsonProperty("custom_parameters")
-    Map<String, String> customParams;
+    Map<String, Object> customParams;
 
     public MessageEvent clone(MessageEvent event) {
         this.id = event.id;
@@ -402,13 +423,11 @@ public class MessageEvent {
     }
 
     public boolean notApplyForLongMessage() {
-        return !"HTTP".equalsIgnoreCase(this.getOriginProtocol()) || "SP".equalsIgnoreCase(this.getDestNetworkType()) ||
-                "HTTP".equalsIgnoreCase(this.getDestProtocol());
+        return "SP".equalsIgnoreCase(this.destNetworkType) || "HTTP".equalsIgnoreCase(this.getDestProtocol()) || (Objects.nonNull(this.messageParts) && !this.messageParts.isEmpty());
     }
 
     public boolean applyForLongMessage() {
-        return "HTTP".equalsIgnoreCase(this.getOriginProtocol()) && "GW".equalsIgnoreCase(this.getDestNetworkType()) &&
-                !"HTTP".equalsIgnoreCase(this.getDestProtocol());
+        return "GW".equalsIgnoreCase(this.destNetworkType) && !"HTTP".equalsIgnoreCase(this.getDestProtocol()) && (Objects.isNull(this.messageParts) || this.messageParts.isEmpty());
     }
 
     @Override
