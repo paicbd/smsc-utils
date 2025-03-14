@@ -2,7 +2,6 @@ package com.paicbd.smsc.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.paicbd.smsc.interpreter.PayloadMapper;
 import com.paicbd.smsc.utils.Converter;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -129,8 +128,6 @@ public class Gateway {
 
     @JsonProperty("split_smpp_type")
     private String splitSmppType;
-
-    private List<PayloadMapper> interpreter;
 
     @Override
     public String toString() {

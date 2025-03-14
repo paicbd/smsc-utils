@@ -117,6 +117,12 @@ public class RoutingRule {
     @JsonProperty("check_sri_response")
     private boolean checkSriResponse = false;
 
+    @JsonProperty("regex_short_message")
+    private String regexShortMessage;
+
+    @JsonProperty("new_short_message")
+    private String newShortMessage;
+
     @Getter
     @Setter
     public static class Destination {
